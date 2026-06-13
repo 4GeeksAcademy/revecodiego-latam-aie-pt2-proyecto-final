@@ -28,7 +28,7 @@ function hasAtLeastTwoWords(value) {
 function validateFullName() {
   const input = document.getElementById('full-name');
   if (!hasAtLeastTwoWords(input.value)) {
-    setFieldError(input, 'full-name-error', 'Por favor, introduce nombre y apellidos');
+    setFieldError(input, 'full-name-error', 'El nombre debe contener al menos nombre y apellido');
     return false;
   }
   clearFieldError(input, 'full-name-error');
@@ -39,7 +39,7 @@ function validateEmail() {
   const input = document.getElementById('email');
   const valid = input.validity.valid && input.value.trim() !== '';
   if (!valid) {
-    setFieldError(input, 'email-error', 'Introduce un correo válido');
+    setFieldError(input, 'email-error', 'Ingresa un email válido (ejemplo: nombre@empresa.com)');
     return false;
   }
   clearFieldError(input, 'email-error');
@@ -51,7 +51,7 @@ function validatePhone() {
   const value = input.value.trim();
   const phoneRegex = /^\+\d{1,3}\s?\d{2,4}(?:\s?\d{2,4}){1,3}$/;
   if (!phoneRegex.test(value)) {
-    setFieldError(input, 'phone-error', 'Incluye el código de país, ej. +34 600 000 000');
+    setFieldError(input, 'phone-error', 'El teléfono debe incluir código de país (ejemplo: +56 9 1234 5678)');
     return false;
   }
   clearFieldError(input, 'phone-error');
@@ -72,7 +72,7 @@ function validateExperienceYears() {
   const input = document.getElementById('experience-years');
   const value = Number(input.value);
   if (input.value === '' || Number.isNaN(value) || value < 0 || value > 50) {
-    setFieldError(input, 'experience-years-error', 'Introduce un valor entre 0 y 50');
+    setFieldError(input, 'experience-years-error', 'Los años de experiencia deben estar entre 0 y 50');
     return false;
   }
   clearFieldError(input, 'experience-years-error');
@@ -82,7 +82,7 @@ function validateExperienceYears() {
 function validateInterestSector() {
   const input = document.getElementById('interest-sector');
   if (!input.value) {
-    setFieldError(input, 'interest-sector-error', 'Selecciona un sector');
+    setFieldError(input, 'interest-sector-error', 'Selecciona el sector de tu interés');
     return false;
   }
   clearFieldError(input, 'interest-sector-error');
@@ -92,7 +92,7 @@ function validateInterestSector() {
 function validateEnglishLevel() {
   const input = document.getElementById('english-level');
   if (!input.value) {
-    setFieldError(input, 'english-level-error', 'Selecciona tu nivel de inglés');
+    setFieldError(input, 'english-level-error', 'Indica tu nivel de inglés');
     return false;
   }
   clearFieldError(input, 'english-level-error');
@@ -137,7 +137,7 @@ function validateLinkedIn() {
   }
 
   if (!isValidUrl) {
-    setFieldError(input, 'linkedin-error', 'Introduce una URL válida de LinkedIn');
+    setFieldError(input, 'linkedin-error', 'Si incluyes LinkedIn, debe ser una URL válida');
     return false;
   }
 
@@ -148,10 +148,21 @@ function validateLinkedIn() {
 function validatePrivacy() {
   const input = document.getElementById('privacy-policy');
   if (!input.checked) {
-    setFieldError(input, 'privacy-error', 'Debes aceptar la política de datos para continuar.');
+    setFieldError(input, 'privacy-error', 'Debes aceptar la política de tratamiento de datos para continuar');
     return false;
   }
   clearFieldError(input, 'privacy-error');
+  return true;
+}
+
+function validateComments() {
+  const input = document.getElementById('comments');
+  const remaining = 500 - input.value.length;
+  if (input.value.length > 500) {
+    setFieldError(input, 'comments-error', `Los comentarios no pueden exceder 500 caracteres (quedan ${remaining})`);
+    return false;
+  }
+  clearFieldError(input, 'comments-error');
   return true;
 }
 
@@ -171,6 +182,7 @@ function validateAll() {
     validateEnglishLevel(),
     validateAvailability(),
     validateLinkedIn(),
+    validateComments(),
     validatePrivacy()
   ];
 
@@ -200,6 +212,7 @@ document.getElementById('privacy-policy').addEventListener('blur', validatePriva
 document.getElementById('privacy-policy').addEventListener('change', validatePrivacy);
 
 comments.addEventListener('input', updateCommentsCounter);
+comments.addEventListener('input', validateComments);
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -212,7 +225,6 @@ form.addEventListener('submit', (event) => {
   const nameValue = document.getElementById('full-name').value.trim();
   form.classList.add('hidden');
   successMessage.classList.remove('hidden');
-  successMessageText.textContent = `✓ ¡Perfil recibido! Revisaremos tu candidatura y te contactaremos si surge una oportunidad. Gracias, ${nameValue}.`;
   successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 

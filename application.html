@@ -117,7 +117,7 @@
         </div>
 
         <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
-          ¿Eres empresa? Visita nuestra página de servicios para conocer cómo te ayudamos.
+          ¿Eres una empresa buscando talento? Escríbenos a contacto@nexova.com
         </div>
 
         <form id="application-form" method="POST" action="#" novalidate class="space-y-6">
@@ -138,7 +138,7 @@
                   class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <p id="full-name-error" class="hidden mt-1 text-sm text-red-600" role="alert">
-                  Por favor, introduce nombre y apellidos
+                  El nombre debe contener al menos nombre y apellido
                 </p>
               </div>
 
@@ -154,7 +154,7 @@
                   aria-describedby="email-error"
                   class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
-                <p id="email-error" class="hidden mt-1 text-sm text-red-600" role="alert">Introduce un correo válido</p>
+                <p id="email-error" class="hidden mt-1 text-sm text-red-600" role="alert">Ingresa un email válido (ejemplo: nombre@empresa.com)</p>
               </div>
 
               <div>
@@ -171,7 +171,7 @@
                   class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <p id="phone-error" class="hidden mt-1 text-sm text-red-600" role="alert">
-                  Incluye el código de país, ej. +56 9 1234 5678
+                  El teléfono debe incluir código de país (ejemplo: +56 9 1234 5678)
                 </p>
               </div>
 
@@ -219,7 +219,7 @@
                   class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <p id="experience-years-error" class="hidden mt-1 text-sm text-red-600" role="alert">
-                  Introduce un valor entre 0 y 50
+                  Los años de experiencia deben estar entre 0 y 50
                 </p>
               </div>
 
@@ -236,14 +236,12 @@
                 >
                   <option value="">Selecciona una opción</option>
                   <option value="tecnologia">Tecnología</option>
-                  <option value="finanzas">Finanzas</option>
                   <option value="retail">Retail</option>
-                  <option value="salud">Salud</option>
-                  <option value="educacion">Educación</option>
-                  <option value="industria">Industria</option>
+                  <option value="servicios-financieros">Servicios Financieros</option>
+                  <option value="consultoria">Consultoría</option>
                   <option value="otro">Otro</option>
                 </select>
-                <p id="interest-sector-error" class="hidden mt-1 text-sm text-red-600" role="alert">Selecciona un sector</p>
+                <p id="interest-sector-error" class="hidden mt-1 text-sm text-red-600" role="alert">Selecciona el sector de tu interés</p>
               </div>
 
               <div>
@@ -263,7 +261,7 @@
                   <option value="avanzado">Avanzado (C1-C2)</option>
                   <option value="nativo">Nativo</option>
                 </select>
-                <p id="english-level-error" class="hidden mt-1 text-sm text-red-600" role="alert">Selecciona tu nivel de inglés</p>
+                <p id="english-level-error" class="hidden mt-1 text-sm text-red-600" role="alert">Indica tu nivel de inglés</p>
               </div>
 
               <div>
@@ -299,14 +297,26 @@
                     <input
                       type="radio"
                       name="availability"
-                      value="3-meses"
+                      value="2-3-meses"
                       required
                       aria-required="true"
                       aria-invalid="false"
                       aria-describedby="availability-error"
                       class="mt-1 h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <span>En 3 meses</span>
+                    <span>2-3 meses</span>
+                  </label>
+                  <label class="flex items-start gap-3 text-slate-700">
+                    <input
+                      type="radio"
+                      name="availability"
+                      value="explorando"
+                      aria-required="true"
+                      aria-invalid="false"
+                      aria-describedby="availability-error"
+                      class="mt-1 h-4 w-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span>Solo explorando</span>
                   </label>
                 </div>
                 <p id="availability-error" class="hidden mt-1 text-sm text-red-600" role="alert">Selecciona tu disponibilidad</p>
@@ -331,7 +341,7 @@
                   class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <p id="linkedin-error" class="hidden mt-1 text-sm text-red-600" role="alert">
-                  Introduce una URL válida de LinkedIn
+                  Si incluyes LinkedIn, debe ser una URL válida
                 </p>
               </div>
 
@@ -367,7 +377,7 @@
                   <span>He leído y acepto la política de privacidad y el tratamiento de mis datos personales.</span>
                 </label>
                 <p id="privacy-error" class="hidden mt-1 text-sm text-red-600" role="alert">
-                  Debes aceptar la política de datos para continuar.
+                  Debes aceptar la política de tratamiento de datos para continuar
                 </p>
               </div>
             </div>
@@ -390,9 +400,9 @@
         </form>
 
         <div id="success-message" class="hidden rounded-2xl border border-green-200 bg-green-50 p-6 text-green-900 shadow-sm" role="status">
-          <p id="success-message-text">
-            ✓ ¡Perfil recibido! Revisaremos tu candidatura y te contactaremos si surge una oportunidad. Gracias, [nombre del candidato].
-          </p>
+          <p id="success-message-text" class="font-semibold text-lg">¡Gracias por tu interés en Nexova!</p>
+          <p class="mt-2">Hemos recibido tu información. Nuestro equipo de selección la revisará y te contactaremos en caso de que tu perfil encaje con alguna de nuestras oportunidades actuales o futuras.</p>
+          <p class="mt-2">Mientras tanto, síguenos en <a href="https://linkedin.com/company/nexova" class="underline font-medium">LinkedIn</a> para estar al día de nuestras vacantes y contenido sobre desarrollo profesional.</p>
         </div>
       </section>
     </main>
