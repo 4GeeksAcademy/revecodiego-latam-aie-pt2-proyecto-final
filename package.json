@@ -1,0 +1,14 @@
+{
+  "name": "nexova-candidate-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Utilidades TypeScript para scoring y matching de candidatos - Hito 2 (Nexova)",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "demo": "tsx src/demo.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "tsx": "^4.15.0"
+  }
+}
