@@ -1,0 +1,15 @@
+{
+  "name": "nexova-candidate-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Utilidades TypeScript de procesamiento de datos para el motor de scoring de candidatos de Nexova (Hito 2).",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "demo": "tsx src/demo.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "tsx": "^4.16.2",
+    "@types/node": "^20.14.10"
+  }
+}
