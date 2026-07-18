@@ -1,0 +1,178 @@
+# config-dev.yaml
+# Manifiesto tecnico para un agente de codigo que va a construir el proyecto.
+# Complementa a Context.md (negocio/requisitos) y Design.md (arquitectura).
+
+project:
+  name: talent-pipeline-tracker
+  milestone: "Hito 3 — Talent Pipeline Tracker"
+  path: uis/talent-pipeline-tracker/
+  status: ready
+  description: >
+    Frontend interno para Nexova (consultora de RRHH y adquisicion de talento,
+    oficinas en Valencia y Miami) que consume una API REST ya construida
+    (Talent Tracker API) para gestionar candidaturas: listado, filtros,
+    busqueda, detalle, cambio de estado/etapa, notas, alta y edicion.
+
+company:
+  name: Nexova
+  industry: consultora de RRHH y adquisicion de talento
+  offices: [Valencia, Miami]
+  requested_by: "Elena Vargas — L&D Manager"
+  stakeholder: "Sergio Molina — CTO"
+  reference_position:
+    title: "Asistente de Dirección"
+    location: "Sede de Valencia"
+    profile: "Asistencia ejecutiva, gestion de agenda y viajes, ingles y espanol profesionales"
+
+stack:
+  framework: nextjs
+  router: app
+  language: typescript
+  styling: tailwindcss
+  linting: eslint
+  http_client: fetch_nativo
+  state_management: react_hooks_only
+  forbidden_dependencies:
+    - redux
+    - zustand
+    - jotai
+    - recoil
+
+environment:
+  env_file: .env.local
+  example_file: .env.example
+  committed: false        # .env.local nunca se commitea
+  variables:
+    NEXT_PUBLIC_API_URL: https://playground.4geeks.com/tracker/api/v1
+
+api:
+  base_url: https://playground.4geeks.com/tracker/api/v1
+  docs_url: https://playground.4geeks.com/tracker/api/v1/docs
+  openapi_url: https://playground.4geeks.com/tracker/api/v1/openapi.json
+  endpoints:
+    - method: GET
+      path: /records
+      query_params: [status, stage, search, page, limit]
+      used_in: listado
+    - method: GET
+      path: /records/{id}
+      used_in: detalle
+    - method: POST
+      path: /records
+      body_schema: RecordCreate
+      used_in: formulario_alta
+    - method: PUT
+      path: /records/{id}
+      body_schema: RecordCreate
+      used_in: formulario_edicion
+    - method: PATCH
+      path: /records/{id}
+      body_schema: RecordPatch
+      used_in: cambio_status_stage
+    - method: DELETE
+      path: /records/{id}
+      used_in: no_requerido_por_el_reto   # el checklist no pide borrar candidaturas
+    - method: GET
+      path: /records/{id}/notes
+      used_in: notas_panel
+    - method: POST
+      path: /records/{id}/notes
+      body_schema: NoteCreate
+      used_in: notas_panel
+    - method: DELETE
+      path: /records/{id}/notes/{note_id}
+      used_in: notas_panel
+
+domain:
+  status_values: [received, in_progress, selected, discarded]
+  stage_values: [pending, review, personal_interview, technical_interview, offer_presented]
+  record_fields:
+    required_on_create: [full_name, email, phone, position, experience_years]
+    optional: [linkedin_url, cv_url]
+    read_only: [id, notes_count, applied_at, updated_at, status, stage]
+  note_fields:
+    required_on_create: [content]
+  ui_labels:
+    rule: "El valor crudo de la API (in_progress, personal_interview, etc.) nunca se muestra en la interfaz — usar siempre estas etiquetas."
+    status:
+      received: Recibida
+      in_progress: En proceso
+      selected: Seleccionada
+      discarded: Descartada
+    stage:
+      pending: Pendiente de revisión
+      review: En revisión
+      personal_interview: Entrevista personal
+      technical_interview: Entrevista técnica
+      offer_presented: Oferta presentada
+
+folder_structure:
+  - app/page.tsx
+  - app/candidates/[id]/page.tsx
+  - app/layout.tsx
+  - components/CandidateList.tsx
+  - components/CandidateRow.tsx
+  - components/FiltersBar.tsx
+  - components/CandidateForm.tsx
+  - components/StatusBadge.tsx
+  - components/StatusSelector.tsx
+  - components/StageSelector.tsx
+  - components/NotesPanel.tsx
+  - components/NoteItem.tsx
+  - components/LoadingState.tsx
+  - components/ErrorState.tsx
+  - hooks/useCandidates.ts
+  - hooks/useCandidate.ts
+  - hooks/useNotes.ts
+  - lib/api.ts
+  - types/record.ts
+  - lib/labels.ts
+
+constraints:
+  - Usar unicamente Next.js App Router, React y TypeScript.
+  - Prohibido usar librerias externas de gestion de estado.
+  - Toda llamada a la API debe usar async/await.
+  - Toda operacion de fetch debe exponer minimo 3 estados de UI: loading, success, error.
+  - Tras PATCH, PUT o POST, actualizar la UI sin recarga completa de pagina.
+  - Navegacion listado-detalle solo via routing de Next.js (Link / useRouter).
+  - No prop drilling — estado acotado por componente/hook.
+  - Etiquetas de status/stage deben usar la tabla domain.ui_labels — nunca el valor crudo de la API.
+  - Las notas internas se muestran unicamente en el detalle del candidato, no en el listado.
+  - El formulario de alta debe incluir todos los campos requeridos por la API.
+
+tasks:
+  - id: setup
+    description: Inicializar proyecto Next.js + TypeScript + Tailwind + ESLint en uis/talent-pipeline-tracker/, crear .env.local y .env.example.
+    status: pending
+  - id: types
+    description: Definir tipos en types/record.ts segun el schema real de la API.
+    status: pending
+  - id: api-layer
+    description: Implementar lib/api.ts con funciones tipadas por endpoint y manejo normalizado de errores.
+    status: pending
+  - id: list-page
+    description: Construir app/page.tsx con listado, filtros por status/stage via useSearchParams, busqueda, y estados loading/success/error.
+    status: pending
+  - id: detail-page
+    description: Construir app/candidates/[id]/page.tsx con detalle completo, cambio de status/stage via PATCH, y panel de notas.
+    status: pending
+  - id: notes
+    description: Implementar useNotes.ts y NotesPanel.tsx — listar, crear, eliminar notas sin recarga, visibles solo en el detalle.
+    status: pending
+  - id: forms
+    description: Implementar CandidateForm.tsx compartido para alta (POST) y edicion (PUT), con validacion y feedback, cubriendo todos los campos requeridos por la API.
+    status: pending
+  - id: labels
+    description: Implementar lib/labels.ts con el mapeo status/stage a etiquetas Nexova y usarlo en StatusBadge/StatusSelector/StageSelector.
+    status: pending
+  - id: review
+    description: Verificar checklist de evaluacion completo (ver Context.md) antes de entregar.
+    status: pending
+
+delivery:
+  target: monorepo del curso (copia del estudiante)
+  branch_convention: seguir instrucciones del instructor
+  pre_push_checks:
+    - .env.local no commiteado
+    - .env.example presente y actualizado
+    - checklist de evaluacion revisado
