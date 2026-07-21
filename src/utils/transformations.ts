@@ -117,7 +117,7 @@ export function calculateCandidateScore(
   const { expectedSalary } = candidate;
   const { salaryRangeMin, salaryRangeMax } = vacancy;
 
-  if (expectedSalary <= salaryRangeMax) {
+  if (expectedSalary >= salaryRangeMin && expectedSalary <= salaryRangeMax) {
     salaryScore = 10;
   } else {
     const maxAcceptable = salaryRangeMax * 1.2;
