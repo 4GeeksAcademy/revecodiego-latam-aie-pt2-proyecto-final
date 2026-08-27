@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-incidents_analysis/__init__.py
-incidents_analysis/metrics.py
-incidents_analysis/validation.py
-incidents_analysis.egg-info/PKG-INFO
-incidents_analysis.egg-info/SOURCES.txt
-incidents_analysis.egg-info/dependency_links.txt
-incidents_analysis.egg-info/top_level.txt
