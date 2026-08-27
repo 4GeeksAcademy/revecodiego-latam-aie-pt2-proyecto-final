@@ -1,0 +1,25 @@
+# incidents-analysis
+
+Python package with reusable helpers to validate incident ticket records and compute aggregated summary metrics.
+
+## Public API
+
+- `validate_record(record: dict) -> tuple[bool, str | None]`
+- `compute_summary(valid_records: list[dict], invalid_records: list[dict]) -> dict`
+- `VALID_CATEGORIES`
+- `VALID_STATUSES`
+
+## Usage
+
+```python
+from incidents_analysis import compute_summary, validate_record
+
+is_valid, reason = validate_record(record)
+summary = compute_summary(valid_records, invalid_records)
+```
+
+## Local editable install
+
+```bash
+pip install -e packages/incidents-analysis
+```
