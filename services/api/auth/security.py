@@ -36,3 +36,25 @@ def decode_access_token(token: str) -> dict | None:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
+
+
+def create_reset_token(user_id: str) -> str:
+    """Create a short-lived JWT exclusively for password resets."""
+    payload = {
+        "sub": user_id,
+        "purpose": "password_reset",
+        "exp": datetime.utcnow() + timedelta(minutes=30),
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_reset_token(token: str) -> str | None:
+    """Return the user ID from a valid password-reset token."""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return None
+
+    if payload.get("purpose") != "password_reset" or not payload.get("sub"):
+        return None
+    return str(payload["sub"])

@@ -1,14 +1,15 @@
 """Persistence and business logic for users and profiles."""
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime
 from typing import Any
 
 from tinydb import Query
 
-from auth.database import profiles_table, users_table
+from auth.database import password_reset_tokens_table, profiles_table, users_table
 from auth.models import ProfileCreate, ProfileUpdate, UserCreate, UserUpdate
-from auth.security import hash_password, verify_password
+from auth.security import decode_reset_token, hash_password, verify_password
 
 
 def _document_to_dict(document: Any) -> dict:
@@ -113,3 +114,48 @@ def authenticate_user(email: str, password: str) -> dict | None:
     if user is None or not verify_password(password, user["hashed_password"]):
         return None
     return user
+
+
+def hash_token(token: str) -> str:
+    """Return a non-reversible hash suitable for reset-token storage."""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def store_reset_token(user_id: str, token: str) -> None:
+    """Persist an unused password-reset token hash for a user."""
+    password_reset_tokens_table.insert(
+        {
+            "user_id": user_id,
+            "token_hash": hash_token(token),
+            "used": False,
+            "created_at": datetime.utcnow().isoformat(),
+        }
+    )
+
+
+def is_reset_token_valid(token: str) -> str | None:
+    """Return a user ID only for a valid, issued, unused reset token."""
+    user_id = decode_reset_token(token)
+    if user_id is None:
+        return None
+
+    token_record = password_reset_tokens_table.get(
+        (Query().token_hash == hash_token(token)) & (Query().used == False)
+    )
+    return user_id if token_record is not None else None
+
+
+def mark_reset_token_used(token: str) -> None:
+    """Mark an issued reset token as used so it cannot be replayed."""
+    password_reset_tokens_table.update(
+        {"used": True},
+        Query().token_hash == hash_token(token),
+    )
+
+
+def update_user_password(user_id: str, new_password: str) -> None:
+    """Replace a user's stored password hash."""
+    users_table.update(
+        {"hashed_password": hash_password(new_password)},
+        doc_ids=[int(user_id)],
+    )
