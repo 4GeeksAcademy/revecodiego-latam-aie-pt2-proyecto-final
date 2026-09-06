@@ -1,4 +1,4 @@
-# `packages` folder
+ç# `packages` folder
 
 This folder contains **shared packages** for the monorepo: internal libraries, utilities, types, shared components, SDKs, clients, and any code reused by multiple applications, agents, or pipelines.
 
