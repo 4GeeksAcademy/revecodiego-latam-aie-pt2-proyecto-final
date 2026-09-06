@@ -2,3 +2,5 @@ node_modules/
 __pycache__/
 *.pyc
 *.egg-info/
+.venv/
+services/api/db.json
