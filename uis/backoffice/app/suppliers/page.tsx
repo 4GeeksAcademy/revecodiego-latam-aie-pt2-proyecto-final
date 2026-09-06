@@ -2,6 +2,9 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
+import { RouteGuard } from "@/components/RouteGuard";
+import { apiFetch } from "@/lib/api-client";
+
 type Supplier = {
   id: string;
   name: string;
@@ -116,7 +119,7 @@ export default function SuppliersPage() {
       const query = new URLSearchParams();
       if (selectedCountry) query.set("country", selectedCountry);
       if (selectedCategory) query.set("category", selectedCategory);
-      const response = await fetch(`${API_URL}/suppliers${query.size ? `?${query}` : ""}`);
+      const response = await apiFetch(`/suppliers${query.size ? `?${query}` : ""}`);
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
@@ -173,7 +176,7 @@ export default function SuppliersPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/suppliers`, {
+      const response = await apiFetch("/suppliers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -202,7 +205,7 @@ export default function SuppliersPage() {
 
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/suppliers/${supplierId}/rate`, {
+      const response = await apiFetch(`/suppliers/${supplierId}/rate`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ monthly_rate: Number(rateValue) }),
@@ -230,7 +233,7 @@ export default function SuppliersPage() {
     setError(null);
     const status = supplier.status === "active" ? "suspended" : "active";
     try {
-      const response = await fetch(`${API_URL}/suppliers/${supplier.id}/status`, {
+      const response = await apiFetch(`/suppliers/${supplier.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -248,6 +251,7 @@ export default function SuppliersPage() {
   };
 
   return (
+    <RouteGuard>
     <main className="space-y-6 pb-8">
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -316,6 +320,7 @@ export default function SuppliersPage() {
         </div>
       </section>
     </main>
+    </RouteGuard>
   );
 }
 
