@@ -4,9 +4,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.responses import JSONResponse
 
+from auth.dependencies import get_current_user
 from database import suppliers_table
 from models import SupplierCreate, SupplierResponse, SupplierUpdateRate, SupplierUpdateStatus
 
@@ -18,7 +19,7 @@ def _doc_to_response(doc: dict[str, Any], doc_id: int) -> SupplierResponse:
 
 
 @router.post("", response_model=SupplierResponse, status_code=status.HTTP_201_CREATED)
-def create_supplier(supplier: SupplierCreate) -> SupplierResponse:
+def create_supplier(supplier: SupplierCreate, current_user: dict = Depends(get_current_user)) -> SupplierResponse:
     doc = supplier.model_dump()
     doc["status"] = doc["status"].value
     doc["updated_at"] = datetime.now().isoformat()
@@ -28,7 +29,9 @@ def create_supplier(supplier: SupplierCreate) -> SupplierResponse:
 
 @router.get("", response_model=list[SupplierResponse])
 def list_suppliers(
-    country: Optional[str] = None, category: Optional[str] = None
+    country: Optional[str] = None,
+    category: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
 ) -> list[SupplierResponse]:
     docs = suppliers_table.all()
     results: list[SupplierResponse] = []
@@ -42,7 +45,7 @@ def list_suppliers(
 
 
 @router.get("/{supplier_id}", response_model=SupplierResponse)
-def get_supplier(supplier_id: str):
+def get_supplier(supplier_id: str, current_user: dict = Depends(get_current_user)):
     doc = suppliers_table.get(doc_id=int(supplier_id))
     if doc is None:
         return JSONResponse(status_code=404, content={"error": "Proveedor no encontrado"})
@@ -50,7 +53,11 @@ def get_supplier(supplier_id: str):
 
 
 @router.patch("/{supplier_id}/rate", response_model=SupplierResponse)
-def update_supplier_rate(supplier_id: str, payload: SupplierUpdateRate):
+def update_supplier_rate(
+    supplier_id: str,
+    payload: SupplierUpdateRate,
+    current_user: dict = Depends(get_current_user),
+):
     doc_id = int(supplier_id)
     doc = suppliers_table.get(doc_id=doc_id)
     if doc is None:
@@ -64,7 +71,11 @@ def update_supplier_rate(supplier_id: str, payload: SupplierUpdateRate):
 
 
 @router.patch("/{supplier_id}/status", response_model=SupplierResponse)
-def update_supplier_status(supplier_id: str, payload: SupplierUpdateStatus):
+def update_supplier_status(
+    supplier_id: str,
+    payload: SupplierUpdateStatus,
+    current_user: dict = Depends(get_current_user),
+):
     doc_id = int(supplier_id)
     doc = suppliers_table.get(doc_id=doc_id)
     if doc is None:
@@ -75,7 +86,7 @@ def update_supplier_status(supplier_id: str, payload: SupplierUpdateStatus):
 
 
 @router.delete("/{supplier_id}")
-def delete_supplier(supplier_id: str):
+def delete_supplier(supplier_id: str, current_user: dict = Depends(get_current_user)):
     doc_id = int(supplier_id)
     doc = suppliers_table.get(doc_id=doc_id)
     if doc is None:

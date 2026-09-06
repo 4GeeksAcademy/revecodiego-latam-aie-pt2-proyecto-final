@@ -8,6 +8,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from incidents_analysis import compute_summary, validate_record
+from auth.routes import auth_router, profiles_router, users_router
 from routes.suppliers import router as suppliers_router
 
 app = FastAPI()
@@ -21,6 +22,9 @@ app.add_middleware(
 )
 
 app.include_router(suppliers_router, prefix="/suppliers", tags=["suppliers"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(users_router, prefix="/users", tags=["users"])
+app.include_router(profiles_router, prefix="/profiles", tags=["profiles"])
 
 LAST_ANALYSIS_RESULT: dict[str, Any] | None = None
 
