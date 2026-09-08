@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 
 import { RouteGuard } from "@/components/RouteGuard";
@@ -114,6 +115,7 @@ function ProfilePageContent() {
           <label className="block text-sm font-medium text-slate-700">Dirección<textarea value={address} onChange={(event) => setAddress(event.target.value)} className="mt-1 block min-h-24 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900" /></label>
           <button type="submit" disabled={isSaving} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400">{isSaving ? "Guardando..." : "Guardar cambios"}</button>
         </form>
+        <p className="mt-6 border-t border-slate-200 pt-6 text-sm text-slate-600">¿Quieres cambiar tu contraseña? <Link href="/account/change-password" className="font-medium text-slate-900 underline">Cambiar contraseña</Link></p>
       </section>
     </main>
   );

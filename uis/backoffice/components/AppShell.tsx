@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const { isLoggedIn, loading, logout } = useAuth();
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isAuthPage = pathname === "/login" || pathname === "/register" || pathname === "/reset-password" || pathname === "/forgot-password";
 
   if (isAuthPage) {
     return <div className="flex min-h-screen items-center justify-center px-4 py-8">{children}</div>;

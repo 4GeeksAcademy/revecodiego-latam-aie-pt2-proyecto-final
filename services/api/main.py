@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from dotenv import load_dotenv
+
+# Debe ejecutarse antes de importar módulos que leen os.getenv() en tiempo de import.
+load_dotenv()
+
 import csv
 import io
 from typing import Any

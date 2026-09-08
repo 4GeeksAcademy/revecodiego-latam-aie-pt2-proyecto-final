@@ -62,7 +62,8 @@ export default function LoginPage() {
         <label className="block text-sm font-medium text-slate-700">Contraseña<input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900" /></label>
         <button type="submit" disabled={isSubmitting} className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400">{isSubmitting ? "Iniciando sesión..." : "Iniciar sesión"}</button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-600">¿No tienes cuenta? <Link href="/register" className="font-medium text-slate-900 underline">Regístrate</Link></p>
+      <p className="mt-6 text-center text-sm text-slate-600">¿Olvidaste tu contraseña? <Link href="/forgot-password" className="font-medium text-slate-900 underline">Recupérala</Link></p>
+      <p className="mt-2 text-center text-sm text-slate-600">¿No tienes cuenta? <Link href="/register" className="font-medium text-slate-900 underline">Regístrate</Link></p>
     </main>
   );
 }
