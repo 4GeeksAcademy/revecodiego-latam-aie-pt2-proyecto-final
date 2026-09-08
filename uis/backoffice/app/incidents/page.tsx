@@ -2,6 +2,8 @@
 
 import { ChangeEvent, DragEvent, useMemo, useState } from "react";
 
+import { RouteGuard } from "@/components/RouteGuard";
+
 type Summary = {
   totals: {
     total_records: number;
@@ -163,6 +165,7 @@ export default function IncidentsPage() {
   };
 
   return (
+    <RouteGuard>
     <main className="space-y-6 pb-8">
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">Análisis de Incidencias</h2>
@@ -283,6 +286,7 @@ export default function IncidentsPage() {
         </section>
       ) : null}
     </main>
+    </RouteGuard>
   );
 }
 
