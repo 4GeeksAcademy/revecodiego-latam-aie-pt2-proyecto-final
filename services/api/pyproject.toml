@@ -10,6 +10,7 @@ dependencies = [
     "fastapi>=0.141.1",
     "incidents-analysis",
     "libpass[bcrypt]>=1.9.3",
+    "nexova-shared",
     "pydantic[email]>=2.13.5",
     "python-dotenv>=1.2.3",
     "python-jose[cryptography]>=3.5.0",
@@ -24,6 +25,7 @@ package = true
 
 [tool.uv.sources]
 incidents-analysis = { path = "../../packages/incidents-analysis", editable = true }
+nexova-shared = { path = "../../packages/shared", editable = true }
 
 [project.scripts]
 seed = "seed:main"

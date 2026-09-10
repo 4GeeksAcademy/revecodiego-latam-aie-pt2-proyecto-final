@@ -41,6 +41,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "incidents-analysis" },
     { name = "libpass", extra = ["bcrypt"] },
+    { name = "nexova-shared" },
     { name = "pydantic", extra = ["email"] },
     { name = "python-dotenv" },
     { name = "python-jose", extra = ["cryptography"] },
@@ -55,6 +56,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "incidents-analysis", editable = "../../packages/incidents-analysis" },
     { name = "libpass", extras = ["bcrypt"], specifier = ">=1.9.3" },
+    { name = "nexova-shared", editable = "../../packages/shared" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.13.5" },
     { name = "python-dotenv", specifier = ">=1.2.3" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.5.0" },
@@ -525,6 +527,12 @@ wheels = [
 name = "incidents-analysis"
 version = "0.1.0"
 source = { editable = "../../packages/incidents-analysis" }
+dependencies = [
+    { name = "nexova-shared" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "nexova-shared" }]
 
 [[package]]
 name = "libpass"
@@ -539,6 +547,11 @@ wheels = [
 bcrypt = [
     { name = "bcrypt" },
 ]
+
+[[package]]
+name = "nexova-shared"
+version = "0.1.0"
+source = { editable = "../../packages/shared" }
 
 [[package]]
 name = "pyasn1"

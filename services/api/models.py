@@ -5,7 +5,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 VALID_CATEGORIES = [
     "job_boards",
@@ -100,3 +100,69 @@ class SupplierResponse(_SupplierCurrencyValidatorMixin):
         _validate_categories(self.categories)
         _validate_contract_renewal_date(self.contract_renewal_date)
         return self
+
+
+class IncidentBranch(str, Enum):
+    CENTRAL = "central"
+    VALENCIA_OPERATIONS = "valencia_operations"
+    MIAMI_OFFICE = "miami_office"
+    REMOTE = "remote"
+
+
+class IncidentCategory(str, Enum):
+    TECHNICAL_FAILURE = "technical_failure"
+    PROCESS_ERROR = "process_error"
+    CLIENT_COMPLAINT = "client_complaint"
+    CANDIDATE_ISSUE = "candidate_issue"
+    STAFF_ISSUE = "staff_issue"
+    SLA_BREACH = "sla_breach"
+    DATA_QUALITY = "data_quality"
+    OTHER = "other"
+
+
+class IncidentStatus(str, Enum):
+    OPEN = "open"
+    IN_PROGRESS = "in_progress"
+    RESOLVED = "resolved"
+    DISCARDED = "discarded"
+
+
+class IncidentOrigin(str, Enum):
+    CUSTOMER = "customer"
+    BRANCH = "branch"
+    INTERNAL = "internal"
+
+
+class IncidentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    description: str
+    category: IncidentCategory
+    origin: IncidentOrigin
+    branch: IncidentBranch
+
+    @field_validator("title", "description")
+    @classmethod
+    def _validate_not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("no puede estar vacío")
+        return value.strip()
+
+
+class IncidentResponse(BaseModel):
+    id: str
+    title: str
+    description: str
+    category: IncidentCategory
+    status: IncidentStatus
+    origin: IncidentOrigin
+    branch: IncidentBranch
+    created_at: datetime
+    updated_at: datetime
+
+
+class IncidentUpdateStatus(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: IncidentStatus

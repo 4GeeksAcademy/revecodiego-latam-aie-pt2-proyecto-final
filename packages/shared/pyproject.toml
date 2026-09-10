@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexova-shared"
+version = "0.1.0"
+description = "Shared Python utilities for Nexova projects"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools]
+packages = ["nexova_shared", "nexova_shared.incidents"]

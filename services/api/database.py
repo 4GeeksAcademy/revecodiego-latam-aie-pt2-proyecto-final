@@ -11,6 +11,7 @@ _db = TinyDB(DB_PATH)
 
 # Table dedicated to supplier directory records.
 suppliers_table = _db.table("suppliers")
+incidents_table = _db.table("incidents")
 
 
 def get_db() -> TinyDB:

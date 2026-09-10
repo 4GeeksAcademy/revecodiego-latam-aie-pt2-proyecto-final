@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from incidents_analysis import compute_summary, validate_record
 from auth.routes import auth_router, profiles_router, users_router
+from routes.incidents import router as incidents_router
 from routes.suppliers import router as suppliers_router
 
 app = FastAPI()
@@ -164,3 +165,6 @@ def export_last_results() -> StreamingResponse:
         media_type="text/csv",
         headers={"Content-Disposition": 'attachment; filename="results.csv"'},
     )
+
+
+app.include_router(incidents_router, prefix="/api/incidents", tags=["incidents"])
