@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from tinydb import Query
@@ -27,7 +27,7 @@ def create_user(user_data: UserCreate) -> dict:
             "hashed_password": hash_password(user_data.password),
             "is_active": True,
             "role": "user",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
     profile = ProfileCreate(
@@ -128,7 +128,7 @@ def store_reset_token(user_id: str, token: str) -> None:
             "user_id": user_id,
             "token_hash": hash_token(token),
             "used": False,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
 

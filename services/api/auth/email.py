@@ -1,9 +1,12 @@
 """Transactional email helpers for authentication workflows."""
 from __future__ import annotations
 
+import logging
 import os
 
 import resend
+
+logger = logging.getLogger(__name__)
 
 resend.api_key = os.getenv("RESEND_API_KEY")
 
@@ -27,5 +30,5 @@ def send_password_reset_email(to_email: str, reset_link: str) -> None:
                 """,
             }
         )
-    except Exception as error:
-        print(f"No se pudo enviar el email de restablecimiento: {error}")
+    except Exception:
+        logger.exception("Fallo al enviar correo transaccional de restablecimiento de contraseña")

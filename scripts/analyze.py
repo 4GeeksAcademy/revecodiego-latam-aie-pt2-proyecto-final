@@ -16,7 +16,7 @@ from incidents_analysis import (
 
 def main() -> None:
     if len(sys.argv) < 2:
-        print("Error: debes indicar la ruta al CSV. Uso: python analyze.py incidents-nexova.csv")
+        print("Error: debes indicar la ruta al CSV. Uso: python analyze.py incidents-nexova.csv", file=sys.stderr)
         sys.exit(1)
 
     csv_path = sys.argv[1]
@@ -40,7 +40,19 @@ def main() -> None:
                     invalid_record["_invalid_reason"] = reason
                     invalid_records.append(invalid_record)
     except FileNotFoundError:
-        print(f"Error: no se encontró el archivo CSV: {csv_path}")
+        print(f"Error: no se encontró el archivo CSV: {csv_path}", file=sys.stderr)
+        sys.exit(1)
+    except UnicodeDecodeError:
+        print(f"Error: el archivo {csv_path} no tiene una codificación UTF-8 válida.", file=sys.stderr)
+        sys.exit(1)
+    except PermissionError:
+        print(f"Error: permisos insuficientes para leer el archivo: {csv_path}", file=sys.stderr)
+        sys.exit(1)
+    except csv.Error as exc:
+        print(f"Error al procesar el formato CSV en {csv_path}: {exc}", file=sys.stderr)
+        sys.exit(1)
+    except OSError as exc:
+        print(f"Error de E/S al acceder al archivo {csv_path}: {exc}", file=sys.stderr)
         sys.exit(1)
 
     summary = compute_summary(valid_records, invalid_records)
