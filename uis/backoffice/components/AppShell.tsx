@@ -24,7 +24,37 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
           </div>
           {!loading ? (
             <nav className="flex flex-wrap items-center gap-2">
-              {isLoggedIn ? <><Link href="/" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Inicio</Link><Link href="/incidents" className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700">Análisis de Incidencias</Link><Link href="/suppliers" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Proveedores</Link><Link href="/account/profile" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Mi perfil</Link><button type="button" onClick={logout} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Cerrar sesión</button></> : <><Link href="/login" className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700">Iniciar sesión</Link><Link href="/register" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">Registrarse</Link></>}
+              {isLoggedIn ? (
+                <>
+                  <Link href="/" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Inicio
+                  </Link>
+                  <Link href="/incidents/manage" className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700">
+                    Gestor de incidencias
+                  </Link>
+                  <Link href="/incidents" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Análisis de Incidencias
+                  </Link>
+                  <Link href="/suppliers" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Proveedores
+                  </Link>
+                  <Link href="/account/profile" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Mi perfil
+                  </Link>
+                  <button type="button" onClick={logout} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Cerrar sesión
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700">
+                    Iniciar sesión
+                  </Link>
+                  <Link href="/register" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Registrarse
+                  </Link>
+                </>
+              )}
             </nav>
           ) : null}
         </div>

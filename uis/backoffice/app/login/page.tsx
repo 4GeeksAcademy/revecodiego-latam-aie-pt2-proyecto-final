@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +15,7 @@ function getErrorMessage(payload: unknown, fallback: string) {
   return fallback;
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshAuthState } = useAuth();
@@ -65,5 +65,13 @@ export default function LoginPage() {
       <p className="mt-6 text-center text-sm text-slate-600">¿Olvidaste tu contraseña? <Link href="/forgot-password" className="font-medium text-slate-900 underline">Recupérala</Link></p>
       <p className="mt-2 text-center text-sm text-slate-600">¿No tienes cuenta? <Link href="/register" className="font-medium text-slate-900 underline">Regístrate</Link></p>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<main className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"><p className="text-sm text-slate-600">Cargando...</p></main>}>
+      <LoginForm />
+    </Suspense>
   );
 }
