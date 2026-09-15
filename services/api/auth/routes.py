@@ -138,18 +138,20 @@ def put_user(
     update_data: UserUpdate,
     current_user: dict = Depends(get_current_user),
 ) -> dict:
-    _ensure_can_modify_user(current_user, user_id)
-    user = update_user(user_id, update_data)
+    user = get_user_by_id(user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
-    return user
+    _ensure_can_modify_user(current_user, user_id)
+    return update_user(user_id, update_data)
 
 
 @users_router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_user(user_id: str, current_user: dict = Depends(get_current_user)) -> Response:
-    _ensure_can_modify_user(current_user, user_id)
-    if not delete_user(user_id):
+    user = get_user_by_id(user_id)
+    if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+    _ensure_can_modify_user(current_user, user_id)
+    delete_user(user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

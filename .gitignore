@@ -6,3 +6,4 @@ __pycache__/
 services/api/db.json
 .env
 services/api/.env
+services/api/.coverage
