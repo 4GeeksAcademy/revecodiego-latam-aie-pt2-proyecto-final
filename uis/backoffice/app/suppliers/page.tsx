@@ -21,8 +21,6 @@ type Supplier = {
 
 type SupplierForm = Omit<Supplier, "id" | "updated_at">;
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 const CATEGORIES = [
   "job_boards",
   "ats_software",
@@ -62,22 +60,25 @@ const EMPTY_FORM: SupplierForm = {
 const INPUT_CLASS = "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900";
 
 function apiErrorMessage(payload: unknown, fallback: string) {
-  if (!payload || typeof payload !== "object") {
-    return fallback;
-  }
-
+  if (!payload || typeof payload !== "object") return fallback;
   const detail = (payload as { detail?: unknown }).detail;
+  if (typeof detail === "string") return detail;
   if (Array.isArray(detail)) {
-    const messages = detail
-      .map((item) => (item && typeof item === "object" ? (item as { msg?: unknown }).msg : null))
-      .filter((message): message is string => typeof message === "string");
-    return messages.length > 0 ? messages.join(". ") : fallback;
+    const messages = detail.flatMap((item) => {
+      if (typeof item?.msg !== "string") return [];
+      const msg = item.msg;
+      const loc = Array.isArray(item?.loc) ? item.loc.slice(1).join(".") : "";
+      const lower = msg.toLowerCase();
+      if (lower.includes("field required")) return [`El campo "${loc}" es obligatorio`];
+      if (lower.includes("extra inputs")) return [`Campo no esperado: "${loc}"`];
+      if (lower.includes("not a valid email")) return ["El email ingresado no es válido"];
+      if (lower.includes("at least") || lower.includes("longer than")) return ["La contraseña debe tener al menos 8 caracteres"];
+      if (lower.includes("greater than")) return ["La tarifa debe ser un valor positivo"];
+      if (lower.includes("email already exists")) return ["Este email ya está registrado"];
+      return [msg];
+    });
+    if (messages.length) return messages.join(". ");
   }
-
-  if (typeof detail === "string") {
-    return detail;
-  }
-
   const error = (payload as { error?: unknown }).error;
   return typeof error === "string" ? error : fallback;
 }
@@ -105,16 +106,12 @@ export default function SuppliersPage() {
   const [editingRateId, setEditingRateId] = useState<string | null>(null);
   const [rateValue, setRateValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [retryLoad, setRetryLoad] = useState<(() => void) | null>(null);
 
   const loadSuppliers = async (selectedCountry = country, selectedCategory = category) => {
-    if (!API_URL) {
-      setError("Falta configurar NEXT_PUBLIC_API_URL.");
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
+    setRetryLoad(null);
     try {
       const query = new URLSearchParams();
       if (selectedCountry) query.set("country", selectedCountry);
@@ -124,12 +121,16 @@ export default function SuppliersPage() {
 
       if (!response.ok) {
         setError(apiErrorMessage(payload, "No se pudo cargar el directorio de proveedores."));
+        setRetryLoad(() => () => void loadSuppliers(selectedCountry, selectedCategory));
+        setSuppliers([]);
         return;
       }
 
       setSuppliers(payload as Supplier[]);
     } catch {
-      setError("No se pudo conectar con la API de proveedores.");
+      setError("No se pudo conectar con la API de proveedores. Revisa tu conexión e inténtalo de nuevo.");
+      setRetryLoad(() => () => void loadSuppliers(selectedCountry, selectedCategory));
+      setSuppliers([]);
     } finally {
       setIsLoading(false);
     }
@@ -164,10 +165,6 @@ export default function SuppliersPage() {
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!API_URL) {
-      setError("Falta configurar NEXT_PUBLIC_API_URL.");
-      return;
-    }
     if (form.categories.length === 0) {
       setError("Selecciona al menos una categoría.");
       return;
@@ -183,7 +180,7 @@ export default function SuppliersPage() {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(apiErrorMessage(payload, "No se pudo crear el proveedor."));
+        setError(apiErrorMessage(payload, "No se pudo crear el proveedor. Verifica los datos e inténtalo de nuevo."));
         return;
       }
 
@@ -191,18 +188,13 @@ export default function SuppliersPage() {
       setIsFormOpen(false);
       await loadSuppliers();
     } catch {
-      setError("No se pudo conectar con la API de proveedores.");
+      setError("No se pudo conectar con la API de proveedores. Revisa tu conexión e inténtalo de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const saveRate = async (supplierId: string) => {
-    if (!API_URL) {
-      setError("Falta configurar NEXT_PUBLIC_API_URL.");
-      return;
-    }
-
     setError(null);
     try {
       const response = await apiFetch(`/suppliers/${supplierId}/rate`, {
@@ -212,7 +204,7 @@ export default function SuppliersPage() {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(apiErrorMessage(payload, "No se pudo actualizar la tarifa."));
+        setError(apiErrorMessage(payload, "No se pudo actualizar la tarifa. Verifica que sea un valor positivo."));
         return;
       }
 
@@ -220,16 +212,14 @@ export default function SuppliersPage() {
       setEditingRateId(null);
       setRateValue("");
     } catch {
-      setError("No se pudo conectar con la API de proveedores.");
+      setError("No se pudo conectar con la API de proveedores. Revisa tu conexión e inténtalo de nuevo.");
+    } finally {
+      setEditingRateId(null);
+      setRateValue("");
     }
   };
 
   const changeStatus = async (supplier: Supplier) => {
-    if (!API_URL) {
-      setError("Falta configurar NEXT_PUBLIC_API_URL.");
-      return;
-    }
-
     setError(null);
     const status = supplier.status === "active" ? "suspended" : "active";
     try {
@@ -240,13 +230,13 @@ export default function SuppliersPage() {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(apiErrorMessage(payload, "No se pudo actualizar el estado."));
+        setError(apiErrorMessage(payload, "No se pudo actualizar el estado. Inténtalo de nuevo."));
         return;
       }
 
       setSuppliers((current) => current.map((item) => (item.id === supplier.id ? (payload as Supplier) : item)));
     } catch {
-      setError("No se pudo conectar con la API de proveedores.");
+      setError("No se pudo conectar con la API de proveedores. Revisa tu conexión e inténtalo de nuevo.");
     }
   };
 
@@ -286,7 +276,20 @@ export default function SuppliersPage() {
           </label>
         </div>
 
-        {error ? <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div> : null}
+        {error ? (
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            <span>{error}</span>
+            {retryLoad ? (
+              <button
+                type="button"
+                onClick={retryLoad}
+                className="ml-3 font-semibold underline transition hover:text-rose-900"
+              >
+                Reintentar
+              </button>
+            ) : null}
+          </div>
+        ) : null}
 
         {isFormOpen ? (
           <form onSubmit={handleCreate} className="mt-6 border-t border-slate-200 pt-6">
@@ -313,8 +316,9 @@ export default function SuppliersPage() {
             <thead className="bg-slate-100 text-slate-600"><tr><th className="px-4 py-3 font-medium">Nombre</th><th className="px-4 py-3 font-medium">País</th><th className="px-4 py-3 font-medium">Categorías</th><th className="px-4 py-3 font-medium">Tarifa mensual</th><th className="px-4 py-3 font-medium">Estado</th><th className="px-4 py-3 font-medium">Renovación</th><th className="px-4 py-3 font-medium">Acciones</th></tr></thead>
             <tbody>
               {isLoading ? <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-600">Cargando proveedores...</td></tr> : null}
-              {!isLoading && suppliers.length === 0 ? <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-600">No hay proveedores para los filtros seleccionados.</td></tr> : null}
-              {suppliers.map((supplier) => <tr key={supplier.id} className="border-t border-slate-200 text-slate-800"><td className="px-4 py-3 font-medium">{supplier.name}</td><td className="px-4 py-3">{supplier.country}</td><td className="px-4 py-3"><div className="flex min-w-48 flex-wrap gap-1">{supplier.categories.map((categoryName) => <span key={categoryName} className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">{CATEGORY_LABELS[categoryName as keyof typeof CATEGORY_LABELS] ?? categoryName}</span>)}</div></td><td className="px-4 py-3">{editingRateId === supplier.id ? <div className="flex items-center gap-2"><input aria-label={`Nueva tarifa para ${supplier.name}`} type="number" min="0.01" step="0.01" value={rateValue} onChange={(event) => setRateValue(event.target.value)} className="w-24 rounded-md border border-slate-300 px-2 py-1" /><button type="button" onClick={() => void saveRate(supplier.id)} className="font-medium text-slate-900 hover:underline">Guardar</button><button type="button" onClick={() => setEditingRateId(null)} className="text-slate-600 hover:underline">Cancelar</button></div> : <div className="flex items-center gap-2"><span>{supplier.currency === "EUR" ? "€" : "$"}{supplier.monthly_rate.toFixed(2)}</span><button type="button" onClick={() => { setEditingRateId(supplier.id); setRateValue(String(supplier.monthly_rate)); }} className="font-medium text-slate-700 hover:text-slate-950 hover:underline">Editar</button></div>}</td><td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${supplier.status === "active" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>{supplier.status === "active" ? "Activo" : "Suspendido"}</span></td><td className="px-4 py-3">{supplier.contract_renewal_date ? <div className="space-y-1"><p>{supplier.contract_renewal_date}</p>{hasUpcomingRenewal(supplier.contract_renewal_date) ? <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">Renovación próxima</span> : null}</div> : <span className="text-slate-500">Sin fecha</span>}</td><td className="px-4 py-3"><button type="button" onClick={() => void changeStatus(supplier)} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50">{supplier.status === "active" ? "Suspender" : "Activar"}</button></td></tr>)}
+              {!isLoading && suppliers.length === 0 && !error ? <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-600">No hay proveedores para los filtros seleccionados.</td></tr> : null}
+              {!isLoading && suppliers.length === 0 && error ? <tr><td colSpan={7} className="px-4 py-8 text-center text-rose-600">{error}{retryLoad ? <button type="button" onClick={retryLoad} className="ml-2 font-semibold underline">Reintentar</button> : null}</td></tr> : null}
+              {suppliers.map((supplier) => <tr key={supplier.id} className="border-t border-slate-200 text-slate-800"><td className="px-4 py-3 font-medium">{supplier.name}</td><td className="px-4 py-3">{supplier.country}</td><td className="px-4 py-3"><div className="flex min-w-48 flex-wrap gap-1">{(supplier.categories ?? []).map((categoryName) => <span key={categoryName} className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700">{CATEGORY_LABELS[categoryName as keyof typeof CATEGORY_LABELS] ?? categoryName}</span>)}</div></td><td className="px-4 py-3">{editingRateId === supplier.id ? <div className="flex items-center gap-2"><input aria-label={`Nueva tarifa para ${supplier.name}`} type="number" min="0.01" step="0.01" value={rateValue} onChange={(event) => setRateValue(event.target.value)} className="w-24 rounded-md border border-slate-300 px-2 py-1" /><button type="button" onClick={() => void saveRate(supplier.id)} className="font-medium text-slate-900 hover:underline">Guardar</button><button type="button" onClick={() => { setEditingRateId(null); setRateValue(""); }} className="text-slate-600 hover:underline">Cancelar</button></div> : <div className="flex items-center gap-2"><span>{supplier.currency === "EUR" ? "€" : "$"}{(supplier.monthly_rate ?? 0).toFixed(2)}</span><button type="button" onClick={() => { setEditingRateId(supplier.id); setRateValue(String(supplier.monthly_rate)); }} className="font-medium text-slate-700 hover:text-slate-950 hover:underline">Editar</button></div>}</td><td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${supplier.status === "active" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>{supplier.status === "active" ? "Activo" : "Suspendido"}</span></td><td className="px-4 py-3">{supplier.contract_renewal_date ? <div className="space-y-1"><p>{supplier.contract_renewal_date}</p>{hasUpcomingRenewal(supplier.contract_renewal_date) ? <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">Renovación próxima</span> : null}</div> : <span className="text-slate-500">Sin fecha</span>}</td><td className="px-4 py-3"><button type="button" onClick={() => void changeStatus(supplier)} className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50">{supplier.status === "active" ? "Suspender" : "Activar"}</button></td></tr>)}
             </tbody>
           </table>
         </div>

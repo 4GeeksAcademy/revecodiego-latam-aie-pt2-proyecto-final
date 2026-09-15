@@ -9,9 +9,23 @@ import { apiFetch } from "@/lib/api-client";
 function getErrorMessage(payload: unknown, fallback: string) {
   if (!payload || typeof payload !== "object") return fallback;
   const detail = (payload as { detail?: unknown }).detail;
-  if (typeof detail === "string") return detail;
+  if (typeof detail === "string") {
+    if (/invalid|expired|not valid|inválido|expirado/i.test(detail)) return "El enlace de restablecimiento no es válido o ha expirado.";
+    return detail;
+  }
   if (Array.isArray(detail)) {
-    const messages = detail.flatMap((item) => typeof item?.msg === "string" ? [item.msg] : []);
+    const messages = detail.flatMap((item) => {
+      if (typeof item?.msg !== "string") return [];
+      const msg = item.msg;
+      const loc = Array.isArray(item?.loc) ? item.loc.filter((s: unknown) => typeof s === "string" && s !== "body").join(".") : "";
+      const lower = msg.toLowerCase();
+      if (lower.includes("field required")) return [`El campo "${loc || "desconocido"}" es obligatorio`];
+      if (lower.includes("extra inputs")) return [`Campo no esperado: "${loc || "desconocido"}"`];
+      if (lower.includes("not a valid email")) return ["El email ingresado no es válido"];
+      if (lower.includes("at least") || lower.includes("longer than")) return ["La contraseña debe tener al menos 8 caracteres"];
+      if (/invalid|expired|not valid/i.test(msg)) return ["El enlace de restablecimiento no es válido o ha expirado."];
+      return [msg];
+    });
     if (messages.length) return messages.join(". ");
   }
   return fallback;
@@ -26,10 +40,12 @@ function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [retryAction, setRetryAction] = useState<(() => void) | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setRetryAction(null);
 
     if (newPassword !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
@@ -52,7 +68,8 @@ function ResetPasswordForm() {
       setSuccess("Contraseña actualizada correctamente. Te llevamos al inicio de sesión...");
       setTimeout(() => router.push("/login?message=Contraseña%20actualizada%2C%20inicia%20sesión"), 1500);
     } catch {
-      setError("No se pudo conectar con el servicio de autenticación.");
+      setError("No se pudo conectar con el servicio de autenticación. Revisa tu conexión e inténtalo de nuevo.");
+      setRetryAction(() => () => { setRetryAction(null); handleSubmit({ preventDefault() {} } as FormEvent<HTMLFormElement>); });
     } finally {
       setIsSubmitting(false);
     }
@@ -74,6 +91,7 @@ function ResetPasswordForm() {
       <p className="mt-2 text-sm text-slate-600">Define una nueva contraseña para tu cuenta de Nexova.</p>
       {success ? <p className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{success}</p> : null}
       {error ? <p className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p> : null}
+      {error && retryAction ? <button type="button" onClick={retryAction} className="mt-2 rounded-lg bg-rose-100 px-3 py-1.5 text-sm font-medium text-rose-800 transition hover:bg-rose-200">Reintentar</button> : null}
       {!success ? (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <label className="block text-sm font-medium text-slate-700">Nueva contraseña<input required minLength={8} type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900" /></label>

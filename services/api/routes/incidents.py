@@ -1,6 +1,7 @@
 """API routes for the centralized incidents manager."""
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
@@ -20,6 +21,8 @@ from models import (
     IncidentStatus,
     IncidentUpdateStatus,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -112,6 +115,7 @@ def create_incident(
     except _IncidentClientError as exc:
         return _error_response(exc.status_code, exc.message, exc.field)
     except Exception as exc:
+        logger.exception("Error inesperado al crear incidencia")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error interno") from exc
 
 
@@ -148,6 +152,7 @@ def get_incidents_summary(current_user: dict = Depends(get_current_user)) -> dic
     except HTTPException:
         raise
     except Exception as exc:
+        logger.exception("Error inesperado al generar resumen de incidencias")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error interno") from exc
 
 
@@ -182,6 +187,7 @@ def list_incidents(
     except HTTPException:
         raise
     except Exception as exc:
+        logger.exception("Error inesperado al listar incidencias")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error interno") from exc
 
 
@@ -198,6 +204,7 @@ def get_incident(incident_id: str, current_user: dict = Depends(get_current_user
     except HTTPException:
         raise
     except Exception as exc:
+        logger.exception("Error inesperado al obtener incidencia por ID")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error interno") from exc
 
 
@@ -233,4 +240,5 @@ def update_incident_status(
     except HTTPException:
         raise
     except Exception as exc:
+        logger.exception("Error inesperado al actualizar estado de incidencia")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error interno") from exc

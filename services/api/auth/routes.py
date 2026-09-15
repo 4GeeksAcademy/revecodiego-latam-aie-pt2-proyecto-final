@@ -113,7 +113,10 @@ def register_user(user_data: UserCreate) -> dict:
     try:
         return create_user(user_data)
     except ValueError as error:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+        message = str(error).strip()
+        if not message:
+            message = "Datos de registro inválidos"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
 
 
 @users_router.get("/", response_model=list[UserResponse])

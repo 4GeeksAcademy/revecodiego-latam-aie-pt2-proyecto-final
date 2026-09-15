@@ -192,7 +192,26 @@ def main() -> None:
     csv_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_PATH
     print(f"Iniciando seed de incidencias históricas desde: {csv_path}")
 
-    results = seed_incidents(csv_path)
+    try:
+        results = seed_incidents(csv_path)
+    except FileNotFoundError:
+        print(f"Error: no se encontró el archivo CSV en {csv_path}", file=sys.stderr)
+        sys.exit(1)
+    except UnicodeDecodeError:
+        print(f"Error: el archivo {csv_path} no tiene una codificación UTF-8 válida.", file=sys.stderr)
+        sys.exit(1)
+    except PermissionError:
+        print(f"Error: permisos insuficientes para acceder a {csv_path}", file=sys.stderr)
+        sys.exit(1)
+    except csv.Error as exc:
+        print(f"Error crítico de parseo CSV en {csv_path}: {exc}", file=sys.stderr)
+        sys.exit(1)
+    except OSError as exc:
+        print(f"Error de E/S al leer {csv_path}: {exc}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as exc:
+        print(f"Error inesperado al ejecutar el seed: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     print("\n" + "=" * 50)
     print("RESUMEN DE SEED DE INCIDENCIAS")

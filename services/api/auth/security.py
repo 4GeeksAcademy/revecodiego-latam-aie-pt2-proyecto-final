@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
 from passlib.hash import bcrypt
@@ -26,7 +26,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: dict) -> str:
     """Create a signed, expiring JWT containing the supplied claims."""
     payload = data.copy()
-    payload["exp"] = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload["exp"] = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -43,7 +43,7 @@ def create_reset_token(user_id: str) -> str:
     payload = {
         "sub": user_id,
         "purpose": "password_reset",
-        "exp": datetime.utcnow() + timedelta(minutes=30),
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 

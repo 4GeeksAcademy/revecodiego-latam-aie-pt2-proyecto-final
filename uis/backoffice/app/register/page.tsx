@@ -13,7 +13,18 @@ function getErrorMessage(payload: unknown, fallback: string) {
   const detail = (payload as { detail?: unknown }).detail;
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail)) {
-    const messages = detail.flatMap((item) => typeof item?.msg === "string" ? [item.msg] : []);
+    const messages = detail.flatMap((item) => {
+      if (typeof item?.msg !== "string") return [];
+      const msg = item.msg;
+      const loc = Array.isArray(item?.loc) ? item.loc.slice(1).join(".") : "";
+      const lower = msg.toLowerCase();
+      if (lower.includes("field required")) return [`El campo "${loc}" es obligatorio`];
+      if (lower.includes("extra inputs")) return [`Campo no esperado: "${loc}"`];
+      if (lower.includes("not a valid email")) return ["El email ingresado no es válido"];
+      if (lower.includes("at least") || lower.includes("longer than")) return ["La contraseña debe tener al menos 8 caracteres"];
+      if (lower.includes("email already exists")) return ["Este email ya está registrado"];
+      return [msg];
+    });
     if (messages.length) return messages.join(". ");
   }
   return fallback;
@@ -28,12 +39,16 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showLoginCTA, setShowLoginCTA] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setShowLoginCTA(false);
     setIsSubmitting(true);
+
+    let registered = false;
     const registrationData = {
       email,
       password,
@@ -50,9 +65,11 @@ export default function RegisterPage() {
       });
       const registerPayload = await registerResponse.json().catch(() => null);
       if (!registerResponse.ok) {
-        setError(getErrorMessage(registerPayload, "No fue posible crear la cuenta."));
+        setError(getErrorMessage(registerPayload, "No fue posible crear la cuenta. Verifica los datos e inténtalo de nuevo."));
         return;
       }
+
+      registered = true;
 
       const loginResponse = await apiFetch("/auth/login", {
         method: "POST",
@@ -61,7 +78,8 @@ export default function RegisterPage() {
       });
       const loginPayload = await loginResponse.json().catch(() => null);
       if (!loginResponse.ok || !loginPayload?.access_token) {
-        router.push("/login?message=Cuenta%20creada%2C%20por%20favor%20inicia%20sesión");
+        setError("Tu cuenta se creó correctamente, pero no pudimos iniciar sesión automáticamente.");
+        setShowLoginCTA(true);
         return;
       }
 
@@ -69,7 +87,12 @@ export default function RegisterPage() {
       refreshAuthState();
       router.push("/");
     } catch {
-      setError("No se pudo conectar con el servicio de autenticación.");
+      if (registered) {
+        setError("Tu cuenta se creó correctamente, pero no pudimos iniciar sesión automáticamente. Por favor inicia sesión manualmente.");
+        setShowLoginCTA(true);
+      } else {
+        setError("No se pudo conectar con el servicio de autenticación. Revisa tu conexión e inténtalo de nuevo.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -79,7 +102,19 @@ export default function RegisterPage() {
     <main className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <h1 className="text-2xl font-semibold text-slate-900">Crear cuenta</h1>
       <p className="mt-2 text-sm text-slate-600">Registra tu acceso al panel interno de Nexova.</p>
-      {error ? <p className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p> : null}
+      {error ? (
+        <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-3 text-sm text-rose-800">
+          <p>{error}</p>
+          {showLoginCTA ? (
+            <Link
+              href="/login"
+              className="mt-2 inline-block font-semibold underline transition hover:text-rose-900"
+            >
+              Ir a iniciar sesión
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <label className="block text-sm font-medium text-slate-700">Email<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900" /></label>
         <label className="block text-sm font-medium text-slate-700">Contraseña<input required minLength={8} type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900" /></label>
