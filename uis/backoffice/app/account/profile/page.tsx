@@ -21,8 +21,21 @@ type MeResponse = {
 };
 
 function getErrorMessage(payload: unknown, fallback: string) {
-  if (payload && typeof payload === "object" && typeof (payload as { detail?: unknown }).detail === "string") {
-    return (payload as { detail: string }).detail;
+  if (!payload || typeof payload !== "object") return fallback;
+  const detail = (payload as { detail?: unknown }).detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail.flatMap((item) => {
+      if (typeof item?.msg !== "string") return [];
+      const msg = item.msg;
+      const loc = Array.isArray(item?.loc) ? item.loc.slice(1).join(".") : "";
+      const lower = msg.toLowerCase();
+      if (lower.includes("field required")) return [`El campo "${loc}" es obligatorio`];
+      if (lower.includes("extra inputs")) return [`Campo no esperado: "${loc}"`];
+      if (lower.includes("not a valid email")) return ["El email ingresado no es válido"];
+      return [msg];
+    });
+    if (messages.length) return messages.join(". ");
   }
   return fallback;
 }
@@ -36,6 +49,7 @@ function ProfilePageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryLoad, setRetryLoad] = useState<(() => void) | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const applyProfile = (data: MeResponse) => {
@@ -49,16 +63,19 @@ function ProfilePageContent() {
   const loadProfile = async () => {
     setIsLoading(true);
     setError(null);
+    setRetryLoad(null);
     try {
       const response = await apiFetch("/auth/me");
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(getErrorMessage(payload, "No se pudo cargar el perfil."));
+        setError(getErrorMessage(payload, "No se pudo cargar el perfil. Inténtalo de nuevo."));
+        setRetryLoad(() => () => void loadProfile());
         return;
       }
       applyProfile(payload as MeResponse);
     } catch {
-      setError("No se pudo conectar con el servicio de autenticación.");
+      setError("No se pudo conectar con el servicio de autenticación. Revisa tu conexión e inténtalo de nuevo.");
+      setRetryLoad(() => () => void loadProfile());
     } finally {
       setIsLoading(false);
     }
@@ -81,14 +98,14 @@ function ProfilePageContent() {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(getErrorMessage(payload, "No se pudo actualizar el perfil."));
+        setError(getErrorMessage(payload, "No se pudo actualizar el perfil. Verifica los datos e inténtalo de nuevo."));
         return;
       }
 
       setSuccess("Perfil actualizado");
       await loadProfile();
     } catch {
-      setError("No se pudo conectar con el servicio de autenticación.");
+      setError("No se pudo conectar con el servicio de autenticación. Revisa tu conexión e inténtalo de nuevo.");
     } finally {
       setIsSaving(false);
     }
@@ -98,12 +115,35 @@ function ProfilePageContent() {
     return <main className="flex min-h-48 items-center justify-center text-sm text-slate-600">Cargando perfil...</main>;
   }
 
+  if (error && !email) {
+    return (
+      <main className="mx-auto max-w-2xl pb-8">
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">Mi perfil</h2>
+          <p className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-3 text-sm text-rose-800">
+            <span>{error}</span>
+            {retryLoad ? (
+              <button type="button" onClick={retryLoad} className="ml-3 font-semibold underline transition hover:text-rose-900">Reintentar</button>
+            ) : null}
+          </p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="mx-auto max-w-2xl pb-8">
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">Mi perfil</h2>
         <p className="mt-2 text-sm text-slate-600">Actualiza los datos de contacto asociados a tu cuenta.</p>
-        {error ? <p className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">{error}</p> : null}
+        {error ? (
+          <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-3 text-sm text-rose-800">
+            <span>{error}</span>
+            {retryLoad ? (
+              <button type="button" onClick={retryLoad} className="ml-3 font-semibold underline transition hover:text-rose-900">Reintentar</button>
+            ) : null}
+          </div>
+        ) : null}
         {success ? <p className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{success}</p> : null}
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-medium text-slate-700">Email<input value={email} readOnly className="mt-1 block w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-700" /></label>
