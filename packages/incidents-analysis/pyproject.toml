@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Reusable validation and metrics for incidents analysis"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["nexova-shared"]
 
 [tool.setuptools]
 packages = ["incidents_analysis"]

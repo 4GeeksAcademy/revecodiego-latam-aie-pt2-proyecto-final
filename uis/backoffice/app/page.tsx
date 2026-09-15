@@ -8,12 +8,18 @@ export default function HomePage() {
         <p className="mt-2 max-w-2xl text-sm text-slate-600">
           Este backoffice permite analizar lotes de incidencias en CSV y obtener métricas agregadas para seguimiento de calidad de servicio.
         </p>
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href="/incidents"
+            href="/incidents/manage"
             className="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
           >
-            Ir al análisis de incidencias
+            Gestor de incidencias
+          </Link>
+          <Link
+            href="/incidents"
+            className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            Ir al análisis CSV
           </Link>
         </div>
       </section>

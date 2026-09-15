@@ -2,6 +2,9 @@
 
 import { ChangeEvent, DragEvent, useMemo, useState } from "react";
 
+import { RouteGuard } from "@/components/RouteGuard";
+import { apiFetch } from "@/lib/api-client";
+
 type Summary = {
   totals: {
     total_records: number;
@@ -30,8 +33,6 @@ type Summary = {
   };
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 const INVALID_REASON_LABELS: Record<string, string> = {
   missing_client_company: "Falta client_company",
   invalid_category: "Categoría inválida o vacía",
@@ -46,16 +47,18 @@ export default function IncidentsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryAction, setRetryAction] = useState<{ onClick: () => void; label: string } | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
 
   const invalidEntries = useMemo(() => {
-    if (!summary) {
+    if (!summary?.invalid_reasons?.order) {
       return [] as Array<[string, number]>;
     }
 
     return summary.invalid_reasons.order
-      .map((reason) => [reason, summary.invalid_reasons.counts[reason] ?? 0] as [string, number])
+      .map((reason) => [reason, summary.invalid_reasons.counts?.[reason] ?? 0] as [string, number])
       .filter(([, count]) => count > 0);
   }, [summary]);
 
@@ -68,11 +71,13 @@ export default function IncidentsPage() {
       setError("Solo se permiten archivos .csv");
       setSelectedFile(null);
       setSummary(null);
+      setRetryAction(null);
       return;
     }
 
     setError(null);
     setSelectedFile(file);
+    setRetryAction(null);
   };
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -100,19 +105,15 @@ export default function IncidentsPage() {
       return;
     }
 
-    if (!API_URL) {
-      setError("Falta configurar NEXT_PUBLIC_API_URL.");
-      return;
-    }
-
     setIsAnalyzing(true);
     setError(null);
+    setRetryAction(null);
 
     try {
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const response = await fetch(`${API_URL}/api/incidents/analyze`, {
+      const response = await apiFetch("/api/incidents/analyze", {
         method: "POST",
         body: formData,
       });
@@ -120,31 +121,32 @@ export default function IncidentsPage() {
       const payload = await response.json();
       if (!response.ok) {
         setSummary(null);
-        setError(payload?.error ?? "No fue posible analizar el archivo.");
+        setError(payload?.error ?? "No fue posible analizar el archivo. Verifica el formato e inténtalo de nuevo.");
+        setRetryAction({ onClick: handleAnalyze, label: "Reintentar" });
         return;
       }
 
       setSummary(payload as Summary);
     } catch {
       setSummary(null);
-      setError("No se pudo conectar con la API de análisis.");
+      setError("No se pudo conectar con la API de análisis. Revisa tu conexión e inténtalo de nuevo.");
+      setRetryAction({ onClick: handleAnalyze, label: "Reintentar" });
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleDownload = async () => {
-    if (!API_URL) {
-      setError("Falta configurar NEXT_PUBLIC_API_URL.");
-      return;
-    }
-
+    setIsDownloading(true);
     setError(null);
+    setRetryAction(null);
+
     try {
-      const response = await fetch(`${API_URL}/api/incidents/results/export`);
+      const response = await apiFetch("/api/incidents/results/export");
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
-        setError(payload?.error ?? "No se pudo descargar el CSV.");
+        setError(payload?.error ?? "No se pudo descargar el CSV. Inténtalo de nuevo.");
+        setRetryAction({ onClick: handleDownload, label: "Reintentar" });
         return;
       }
 
@@ -158,11 +160,15 @@ export default function IncidentsPage() {
       anchor.remove();
       URL.revokeObjectURL(url);
     } catch {
-      setError("No se pudo descargar el CSV.");
+      setError("No se pudo descargar el CSV. Revisa tu conexión e inténtalo de nuevo.");
+      setRetryAction({ onClick: handleDownload, label: "Reintentar" });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
   return (
+    <RouteGuard>
     <main className="space-y-6 pb-8">
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">Análisis de Incidencias</h2>
@@ -208,24 +214,36 @@ export default function IncidentsPage() {
             <button
               type="button"
               onClick={handleDownload}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              disabled={isDownloading}
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
             >
-              Descargar CSV
+              {isDownloading ? "Descargando..." : "Descargar CSV"}
             </button>
           ) : null}
         </div>
 
         {error ? (
-          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div>
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            <span>{error}</span>
+            {retryAction ? (
+              <button
+                type="button"
+                onClick={retryAction.onClick}
+                className="ml-3 font-semibold underline transition hover:text-rose-900"
+              >
+                {retryAction.label}
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </section>
 
       {summary ? (
         <section className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard title="Total de registros" value={summary.totals.total_records} />
-            <MetricCard title="Registros válidos" value={summary.totals.valid_records} />
-            <MetricCard title="Registros inválidos" value={summary.totals.invalid_records} />
+            <MetricCard title="Total de registros" value={summary.totals?.total_records ?? 0} />
+            <MetricCard title="Registros válidos" value={summary.totals?.valid_records ?? 0} />
+            <MetricCard title="Registros inválidos" value={summary.totals?.invalid_records ?? 0} />
           </div>
 
           {invalidEntries.length > 0 ? (
@@ -244,18 +262,18 @@ export default function IncidentsPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             <DataTable
               title="Desglose por categoría"
-              rows={summary.categories.order.map((category) => ({
+              rows={(summary.categories?.order ?? []).map((category) => ({
                 label: category,
-                count: summary.categories.counts[category] ?? 0,
-                percentage: summary.categories.percentages[category] ?? 0,
+                count: summary.categories?.counts?.[category] ?? 0,
+                percentage: summary.categories?.percentages?.[category] ?? 0,
               }))}
             />
             <DataTable
               title="Desglose por estado"
-              rows={summary.statuses.order.map((status) => ({
+              rows={(summary.statuses?.order ?? []).map((status) => ({
                 label: status,
-                count: summary.statuses.counts[status] ?? 0,
-                percentage: summary.statuses.percentages[status] ?? 0,
+                count: summary.statuses?.counts?.[status] ?? 0,
+                percentage: summary.statuses?.percentages?.[status] ?? 0,
               }))}
             />
           </div>
@@ -263,10 +281,10 @@ export default function IncidentsPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="text-base font-semibold text-slate-900">Índice de satisfacción</h3>
             <p className="mt-2 text-sm text-slate-600">
-              Tickets calificados: {summary.satisfaction.scored_tickets} de {summary.satisfaction.closed_total}
+              Tickets calificados: {summary.satisfaction?.scored_tickets ?? 0} de {summary.satisfaction?.closed_total ?? 0}
             </p>
             <p className="mt-1 text-sm text-slate-700">
-              Promedio: <span className="font-semibold">{summary.satisfaction.average_score.toFixed(2)} / 5.00</span>
+              Promedio: <span className="font-semibold">{(summary.satisfaction?.average_score ?? 0).toFixed(2)} / 5.00</span>
             </p>
 
             <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
@@ -274,7 +292,7 @@ export default function IncidentsPage() {
                 <div key={score} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
                   <p className="font-medium text-slate-700">Score {score}</p>
                   <p className="text-lg font-semibold text-slate-900">
-                    {summary.satisfaction.score_counts[String(score)] ?? 0}
+                    {summary.satisfaction?.score_counts?.[String(score)] ?? 0}
                   </p>
                 </div>
               ))}
@@ -283,6 +301,7 @@ export default function IncidentsPage() {
         </section>
       ) : null}
     </main>
+    </RouteGuard>
   );
 }
 
