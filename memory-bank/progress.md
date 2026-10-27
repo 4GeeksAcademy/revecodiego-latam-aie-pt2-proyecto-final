@@ -66,4 +66,4 @@ Las instalaciones iniciales no existian: lint primero fallo por `eslint: not fou
 
 ## Entrega agent-ready
 
-En curso: briefing literal y memory bank creados en `3394c16`; [AGENTS.md](../AGENTS.md) raiz creado y validado (enlaces locales y cinco pasos ordenados). Reglas scoped y skill pendientes. Los checks documentales pasan; no declarar verde el repo mientras persistan los fallos previos. Actualizar esta seccion tras el dry-run y la ejecucion final del workflow.
+En curso: briefing literal y memory bank creados en `3394c16`; [AGENTS.md](../AGENTS.md) raiz creado en `5452068` y validado (enlaces locales y cinco pasos ordenados). Cinco reglas scoped creadas: [estructura](../.agents/rules/repo-structure.md), [secretos](../.agents/rules/secrets-and-env.md), [commits](../.agents/rules/commit-conventions.md), [servicios](../.agents/rules/services-conventions.md) y [UIs](../.agents/rules/uis-conventions.md). Check de frontmatter, Rationale, Evidence y enlaces: OK en las cinco. Skill y ejecucion final del workflow pendientes. No declarar verde el repo mientras persistan los fallos previos.
