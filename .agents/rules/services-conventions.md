@@ -10,7 +10,7 @@ globs: ["services/**"]
 - Mantener endpoints backend dentro de `services/`, y validacion/metricas reutilizables en el paquete existente `packages/incidents-analysis`. No copiar esas funciones a la API ni introducir otro arbol de backend.
 - Para cambios en el servicio actual, respetar el contrato real: `POST /api/incidents/analyze` recibe campo multipart `file`; `GET /api/incidents/results/export` exporta metricas del ultimo analisis y devuelve 404 si no existe. No convertir errores en exito ni loguear emails/descripciones de tickets.
 - La implementacion actual usa `LAST_ANALYSIS_RESULT` global en memoria y CORS wildcard. Son hechos a tener en cuenta, no recomendaciones de arquitectura segura ni prueba de persistencia. Cambios de contrato, almacenamiento, auth o dependencias requieren alcance explicito.
-- Preparar un virtualenv fuera del repo; instalar desde `services/api` con `python -m pip install -r requirements.txt` usando ese interpreter. El editable relativo depende del cwd. Ejecutar la skill read-only `verify-service-endpoints` una vez disponible y ampliar validacion segun lo tocado.
+- Preparar un virtualenv fuera del repo; instalar desde `services/api` con `python -m pip install -r requirements.txt` usando ese interpreter. El editable relativo depende del cwd. Ejecutar la skill read-only [verify-service-endpoints](../skills/verify-service-endpoints/SKILL.md) y ampliar validacion segun lo tocado.
 - No afirmar tests de auth existentes: **aplica cuando se mergee #10**. Releer entonces los comandos reales. Los PRs #4 a #9 siguen pendientes segun el snapshot; no son evidencia de features en main.
 
 ## Rationale

@@ -30,7 +30,7 @@ Las versiones con `^` son rangos, no versiones instaladas garantizadas. Los requ
 
 El snapshot de PRs #3 a #10, ramas, bases y alcance anunciado esta en [progress.md](progress.md#pendientes-de-merge). No constituyen features integradas. JWT/auth (#5), UI auth (#6), password reset (#7), directorio (#4), gestor (#8), auditoria (#9) y tests de auth (#10) deben verificarse de nuevo tras merge. #9 tiene como base `feature/incidents-manager`, no main.
 
-Excepcion importante: #3 sigue OPEN pero los archivos de analisis citados arriba ya existen en main (`ab11931`, `9c45048`, `2554cc5`). No afirmar ni que el PR esta merged ni que toda su rama esta integrada. Comprobar `git log main --oneline -- scripts/analyze.py services/api uis/backoffice packages/incidents-analysis` y el diff del PR antes de decidir que falta.
+Excepcion importante: #3 sigue OPEN pero los archivos de analisis citados arriba ya existen en main (`ab11931`, `9c45048`, `2554cc5`). El contraste final `git log --oneline main..origin/feature/incidents-analysis` muestra solo `f9fe312`; `git diff --stat main...origin/feature/incidents-analysis` muestra solo dos lineas agregadas en [scripts/README.es.md](../scripts/README.es.md). El runtime coincide en las referencias inspeccionadas; queda diferencia documental, no una API entera pendiente. No afirmar que el PR esta merged. Revalidar referencias y diff remoto antes de decidir que falta.
 
 ## Comandos reales
 
@@ -45,7 +45,7 @@ Desde la raiz, salvo donde se indica. Se ejecutaron los gates; resultados y deud
 | API runtime | Desde `services/api`, con virtualenv activado: `uvicorn main:app --reload --port 8000` | Comando documentado en [README.md](../services/api/README.md); no es un test |
 | CLI de analisis | Con dependencia instalada: `python scripts/analyze.py scripts/incidents-nexova.csv` | Escribe `results.csv` en cwd; no ejecutarlo desde raiz para validar docs. Evidencia: [analyze.py](../scripts/analyze.py) |
 
-No hay runner Python de tests/configuracion de lint en [requirements.txt](../services/api/requirements.txt) ni [pyproject.toml](../packages/incidents-analysis/pyproject.toml). Esta entrega preve una auditoria read-only en `.agents/skills/verify-service-endpoints/SKILL.md`, que debera validarse antes de declararla disponible. Los tests de auth aplican cuando se mergee #10: entonces releer sus comandos; no inventar un comando actual.
+No hay runner Python de tests/configuracion de lint en [requirements.txt](../services/api/requirements.txt) ni [pyproject.toml](../packages/incidents-analysis/pyproject.toml). Esta entrega incorpora una auditoria read-only validada en [.agents/skills/verify-service-endpoints/SKILL.md](../.agents/skills/verify-service-endpoints/SKILL.md); comprueba funciones/rutas y export en memoria, no integracion HTTP. Los tests de auth aplican cuando se mergee #10: entonces releer sus comandos; no inventar un comando actual.
 
 ## Mapa de carpetas
 
@@ -60,7 +60,7 @@ Las rutas `/services` y `/uis` de este mapa son relativas a la raiz del repo, no
 | `/services` | APIs/backends/workers; existe `api/` | [services/README.es.md](../services/README.es.md), [services/api/README.md](../services/api/README.md) |
 | `packages/` | Paquetes compartidos existentes: `shared/`, `incidents-analysis/` | [packages/README.es.md](../packages/README.es.md), [pyproject.toml](../packages/incidents-analysis/pyproject.toml) |
 | `agents/`, `skills/` | Carpetas de producto/plantillas y capacidades del monorepo, con README y `_template/`; NO son `.agents/` | [agents/README.es.md](../agents/README.es.md), [skills/README.es.md](../skills/README.es.md) |
-| `.agents/` | Configuracion del coding agent creada en esta rama: cinco reglas; skill aun pendiente de validar. No runtime de producto | [AGENTS.md](../AGENTS.md), [repo-structure.md](../.agents/rules/repo-structure.md); contrastar con [agents/README.es.md](../agents/README.es.md) y [skills/README.es.md](../skills/README.es.md) |
+| `.agents/` | Configuracion del coding agent creada en esta rama: cinco reglas y una skill read-only validada. No runtime de producto | [AGENTS.md](../AGENTS.md), [repo-structure.md](../.agents/rules/repo-structure.md), [SKILL.md](../.agents/skills/verify-service-endpoints/SKILL.md); contrastar con [agents/README.es.md](../agents/README.es.md) y [skills/README.es.md](../skills/README.es.md) |
 | `scripts/`, `data/`, `docs/`, `infra/`, `internal/`, `mcps/`, `shared/`, `workflows/` | Superficies existentes de soporte/scaffolding; no prueba de infraestructura desplegada | [README.es.md](../README.es.md), [scripts/README.es.md](../scripts/README.es.md) |
 | `src/`, `index.html`, `application.html`, `validation.js` | Entregables previos existentes en raiz, conservados; no abrir nuevos arboles similares | [package.json](../package.json), [index.html](../index.html), [application.html](../application.html), [validation.js](../validation.js) |
 

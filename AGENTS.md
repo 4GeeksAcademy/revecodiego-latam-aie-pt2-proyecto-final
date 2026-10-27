@@ -56,7 +56,7 @@ Si se toca producto, usar ademas los comandos existentes para su superficie:
 | `validation.js` | `node --check validation.js` y verificacion manual del formulario; sintaxis no valida comportamiento | [validation.js](validation.js), [Context2.md](Context2.md) |
 | `uis/backoffice/**` | `npm --prefix uis/backoffice run lint` y `npm --prefix uis/backoffice run build` | [package.json](uis/backoffice/package.json) |
 | Tracker, solo con autorizacion | `npm --prefix uis/talent-pipeline-tracker run lint` y `npm --prefix uis/talent-pipeline-tracker run build` | [package.json](uis/talent-pipeline-tracker/package.json) |
-| API / paquete Python de incidencias | Auditoria read-only de `.agents/skills/verify-service-endpoints/SKILL.md`, cuando este creada; despues ampliar checks al contrato modificado | [main.py](services/api/main.py), [pyproject.toml](packages/incidents-analysis/pyproject.toml) |
+| API / paquete Python de incidencias | Auditoria read-only de [verify-service-endpoints](.agents/skills/verify-service-endpoints/SKILL.md); despues ampliar checks al contrato modificado | [main.py](services/api/main.py), [pyproject.toml](packages/incidents-analysis/pyproject.toml) |
 
 Preparacion, solo si faltan dependencias: `npm ci` en raiz o `npm --prefix <ui> ci`, sin modificar lockfiles; para Python seguir [techContext.md](memory-bank/techContext.md#comandos-reales) (virtualenv temporal y requirements desde `services/api`). No asumir un script global `test`, `lint` o `build`: no existe en el manifest raiz. Los unit tests de auth **aplican cuando se mergee #10**; releer entonces sus manifests/instrucciones y verificar el comando real, no anticiparlo.
 
