@@ -66,4 +66,4 @@ Las instalaciones iniciales no existian: lint primero fallo por `eslint: not fou
 
 ## Entrega agent-ready
 
-En curso. Actualizar esta seccion tras validar la skill y el workflow; registrar resultados, no solo comandos planeados. No declarar verde el repo mientras persistan los fallos previos.
+En curso: briefing literal y memory bank creados en `3394c16`; [AGENTS.md](../AGENTS.md) raiz creado y validado (enlaces locales y cinco pasos ordenados). Reglas scoped y skill pendientes. Los checks documentales pasan; no declarar verde el repo mientras persistan los fallos previos. Actualizar esta seccion tras el dry-run y la ejecucion final del workflow.
